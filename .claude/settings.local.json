@@ -13,7 +13,9 @@
       "Bash(npx serve:*)",
       "Bash(open:*)",
       "Bash(docker-compose:*)",
-      "Bash(npx -y @modelcontextprotocol/server-filesystem:*)"
+      "Bash(npx -y @modelcontextprotocol/server-filesystem:*)",
+      "Bash(gh repo:*)",
+      "Bash(brew install:*)"
     ]
   }
 }
