@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: airpay-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airpay
+      POSTGRES_PASSWORD: airpay_password
+      POSTGRES_DB: airpay_messenger
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airpay"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Bull Queue
+  redis:
+    image: redis:7-alpine
+    container_name: airpay-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # AirPay Messenger API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airpay-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://airpay:airpay_password@postgres:5432/airpay_messenger?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Copy other environment variables from .env file
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/v1/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+
+  # Prisma Studio (optional - for database management)
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airpay-prisma-studio
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://airpay:airpay_password@postgres:5432/airpay_messenger?schema=public
+    command: npx prisma studio --port 5555
+    ports:
+      - "5555:5555"
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: airpay-network

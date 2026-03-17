@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(npm install)",
+      "Bash(docker:*)",
+      "Bash(node:*)",
+      "Bash(npm --version:*)",
+      "Bash(npm run prisma:generate:*)",
+      "Bash(psql:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(npx serve:*)",
+      "Bash(open:*)",
+      "Bash(docker-compose:*)",
+      "Bash(npx -y @modelcontextprotocol/server-filesystem:*)"
+    ]
+  }
+}

@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirPay Messenger</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #64748b;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --sidebar-width: 240px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: #1e293b;
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-logo .icon {
+      width: 36px; height: 36px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .sidebar-logo .name {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .sidebar-logo .name span {
+      display: block;
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .sidebar-nav {
+      padding: 12px 0;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #94a3b8;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover { background: #334155; color: #f1f5f9; }
+    .nav-item.active { background: #334155; color: #f1f5f9; border-left-color: var(--primary); }
+    .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid #334155;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+
+    .topbar-title { font-size: 18px; font-weight: 600; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+    .api-key-display {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .api-key-display input {
+      border: none;
+      background: none;
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 180px;
+      outline: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-danger { background: var(--danger); color: white; }
+
+    /* Content */
+    .content {
+      padding: 28px;
+      flex: 1;
+    }
+
+    /* Pages */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-change { font-size: 12px; color: var(--success); margin-top: 4px; }
+
+    /* Form */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+    .form-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.15s;
+    }
+    .form-control:focus { border-color: var(--primary); }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+    select.form-control { cursor: pointer; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* Channel pills */
+    .channel-select {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .channel-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+      background: var(--bg);
+    }
+
+    .channel-pill:hover { border-color: var(--primary); color: var(--primary); }
+    .channel-pill.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+    .channel-pill.whatsapp.active { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+    .channel-pill.sms.active { border-color: #d97706; background: #fffbeb; color: #d97706; }
+
+    /* Status badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-queued { background: #f1f5f9; color: #64748b; }
+    .badge-sent { background: #dbeafe; color: #2563eb; }
+    .badge-delivered { background: #d1fae5; color: #059669; }
+    .badge-read { background: #e0e7ff; color: #4f46e5; }
+    .badge-failed { background: #fee2e2; color: #dc2626; }
+    .badge-bounced { background: #fef3c7; color: #d97706; }
+
+    /* Table */
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 14px; text-align: left; font-size: 13px; }
+    th { font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); }
+    td { border-bottom: 1px solid var(--border); }
+    tr:hover td { background: var(--bg); }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 20px; right: 20px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 1000;
+      display: none;
+      animation: slideIn 0.3s ease;
+      max-width: 350px;
+    }
+    .notification.success { background: #16a34a; color: white; }
+    .notification.error { background: var(--danger); color: white; }
+    .notification.info { background: var(--primary); color: white; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Loading */
+    .loading {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Health indicator */
+    .health-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+    .health-dot.online { background: var(--success); }
+    .health-dot.offline { background: var(--danger); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      margin: 20px;
+    }
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+    .tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+    }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .message-preview {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    code {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">✉️</div>
+    <div class="name">AirPay <span>Messenger</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('send')">
+      <span class="nav-icon">📤</span> Send Message
+    </div>
+    <div class="nav-item" onclick="showPage('messages')">
+      <span class="nav-icon">💬</span> Messages
+    </div>
+    <div class="nav-item" onclick="showPage('contacts')">
+      <span class="nav-icon">👥</span> Contacts
+    </div>
+    <div class="nav-item" onclick="showPage('templates')">
+      <span class="nav-icon">📋</span> Templates
+    </div>
+    <div class="nav-item" onclick="showPage('settings')">
+      <span class="nav-icon">⚙️</span> Settings
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <span class="health-dot" id="healthDot"></span>
+    <span id="healthStatus">Checking...</span>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <div class="api-key-display">
+        🔑 <input type="password" id="apiKeyInput" placeholder="Enter API key..." />
+        <button class="btn btn-sm btn-secondary" onclick="saveApiKey()">Save</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- Dashboard Page -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Messages</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-change">All channels</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">✉️ Email Sent</div>
+          <div class="stat-value" id="stat-email">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">💬 SMS Sent</div>
+          <div class="stat-value" id="stat-sms">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">📱 WhatsApp Sent</div>
+          <div class="stat-value" id="stat-whatsapp">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🚀 Quick Send</div>
+        <div class="channel-select">
+          <div class="channel-pill email active" onclick="selectChannel('email', this)">✉️ Email</div>
+          <div class="channel-pill sms" onclick="selectChannel('sms', this)">💬 SMS</div>
+          <div class="channel-pill whatsapp" onclick="selectChannel('whatsapp', this)">📱 WhatsApp</div>
+        </div>
+        <div id="quickForm">
+          <div class="form-group">
+            <label class="form-label">To</label>
+            <input type="text" class="form-control" id="quickTo" placeholder="Email address or phone number" />
+          </div>
+          <div class="form-group" id="subjectGroup">
+            <label class="form-label">Subject</label>
+            <input type="text" class="form-control" id="quickSubject" placeholder="Message subject" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message</label>
+            <textarea class="form-control" id="quickBody" placeholder="Type your message..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="quickSend()">
+            <span id="quickSendText">Send Message</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📨 Recent Messages</div>
+        <div id="recentMessages">
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No messages yet. Send your first message above!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Send Message Page -->
+    <div class="page" id="page-send">
+      <div class="card">
+        <div class="card-title">📤 Send Message</div>
+        <div class="channel-select">
+          <div class="channel-pill email active" onclick="selectSendChannel('email', this)">✉️ Email</div>
+          <div class="channel-pill sms" onclick="selectSendChannel('sms', this)">💬 SMS</div>
+          <div class="channel-pill whatsapp" onclick="selectSendChannel('whatsapp', this)">📱 WhatsApp</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">To *</label>
+            <input type="text" class="form-control" id="sendTo" placeholder="Recipient" />
+          </div>
+          <div class="form-group" id="sendCcGroup">
+            <label class="form-label">CC (optional)</label>
+            <input type="text" class="form-control" id="sendCc" placeholder="CC address" />
+          </div>
+        </div>
+
+        <div class="form-group" id="sendSubjectGroup">
+          <label class="form-label">Subject *</label>
+          <input type="text" class="form-control" id="sendSubject" placeholder="Email subject" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Message *</label>
+          <textarea class="form-control" id="sendBody" rows="5" placeholder="Type your message..."></textarea>
+        </div>
+
+        <div class="form-group" id="sendHtmlGroup">
+          <label class="form-label">HTML Body (optional)</label>
+          <textarea class="form-control" id="sendHtml" rows="4" placeholder="<h1>HTML content...</h1>"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Schedule (optional)</label>
+          <input type="datetime-local" class="form-control" id="sendSchedule" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Metadata (optional JSON)</label>
+          <input type="text" class="form-control" id="sendMeta" placeholder='{"source": "dashboard"}' />
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="sendMessage()">
+            <span id="sendBtnText">📤 Send Message</span>
+          </button>
+          <button class="btn btn-secondary" onclick="clearSendForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="card" id="sendResult" style="display:none;">
+        <div class="card-title">✅ Message Sent</div>
+        <div id="sendResultContent"></div>
+      </div>
+    </div>
+
+    <!-- Messages Page -->
+    <div class="page" id="page-messages">
+      <div class="card">
+        <div class="card-title">💬 Message History</div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <input type="text" class="form-control" id="contactIdSearch" placeholder="Contact ID to search..." style="max-width:300px;" />
+          <button class="btn btn-primary btn-sm" onclick="loadMessages()">Search</button>
+          <button class="btn btn-secondary btn-sm" onclick="loadAllMessages()">Show All</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Direction</th>
+                <th>To/From</th>
+                <th>Subject/Body</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="messagesTable">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Enter a Contact ID to search</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacts Page -->
+    <div class="page" id="page-contacts">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;gap:10px;">
+          <input type="text" class="form-control" id="contactSearch" placeholder="Search contacts..." style="max-width:260px;" />
+          <button class="btn btn-secondary btn-sm" onclick="searchContacts()">Search</button>
+        </div>
+        <button class="btn btn-primary" onclick="openContactModal()">+ New Contact</button>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>WhatsApp</th>
+                <th>Preferred Channel</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="contactsTable">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Templates Page -->
+    <div class="page" id="page-templates">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3>Message Templates</h3>
+        <button class="btn btn-primary" onclick="openTemplateModal()">+ New Template</button>
+      </div>
+      <div id="templatesList">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <p>No templates yet. Create one to get started!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div class="page" id="page-settings">
+      <div class="card">
+        <div class="card-title">🔑 API Configuration</div>
+        <div class="form-group">
+          <label class="form-label">API Base URL</label>
+          <input type="text" class="form-control" id="settingsBaseUrl" value="http://localhost:3000/api/v1" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <input type="text" class="form-control" id="settingsApiKey" placeholder="Enter your API key" />
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔗 API Endpoints Reference</div>
+        <table>
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST</code></td><td><code>/messages/send</code></td><td>Send a message</td></tr>
+            <tr><td><code>GET</code></td><td><code>/messages/:id/status</code></td><td>Get message status</td></tr>
+            <tr><td><code>GET</code></td><td><code>/messages</code></td><td>Get message history</td></tr>
+            <tr><td><code>POST</code></td><td><code>/contacts</code></td><td>Create contact</td></tr>
+            <tr><td><code>GET</code></td><td><code>/contacts</code></td><td>List contacts</td></tr>
+            <tr><td><code>GET</code></td><td><code>/health</code></td><td>Health check</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 API Health Check</div>
+        <button class="btn btn-secondary" onclick="checkHealth()">Check Now</button>
+        <div id="healthResult" style="margin-top:12px;font-size:13px;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Contact Modal -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal">
+    <div class="modal-title">👤 New Contact</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">First Name</label>
+        <input type="text" class="form-control" id="cFirstName" placeholder="John" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Last Name</label>
+        <input type="text" class="form-control" id="cLastName" placeholder="Doe" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" id="cEmail" placeholder="john@example.com" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone (+E.164 format)</label>
+      <input type="text" class="form-control" id="cPhone" placeholder="+1234567890" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">WhatsApp ID</label>
+      <input type="text" class="form-control" id="cWhatsApp" placeholder="1234567890" />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" onclick="createContact()">Create Contact</button>
+      <button class="btn btn-secondary" onclick="closeModal('contactModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Modal -->
+<div class="modal-overlay" id="templateModal">
+  <div class="modal">
+    <div class="modal-title">📋 New Template</div>
+    <div class="form-group">
+      <label class="form-label">Template Name</label>
+      <input type="text" class="form-control" id="tName" placeholder="welcome_email" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Channel</label>
+      <select class="form-control" id="tChannel">
+        <option value="email">Email</option>
+        <option value="sms">SMS</option>
+        <option value="whatsapp">WhatsApp</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Subject Template (email only)</label>
+      <input type="text" class="form-control" id="tSubject" placeholder="Welcome {{firstName}}!" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Body Template *</label>
+      <textarea class="form-control" id="tBody" placeholder="Hi {{firstName}}, welcome to {{companyName}}!"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Variables (comma separated)</label>
+      <input type="text" class="form-control" id="tVars" placeholder="firstName, companyName" />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" onclick="createTemplate()">Create Template</button>
+      <button class="btn btn-secondary" onclick="closeModal('templateModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification -->
+<div class="notification" id="notification"></div>
+
+<script>
+  // State
+  let state = {
+    apiKey: localStorage.getItem('airpay_api_key') || '',
+    baseUrl: localStorage.getItem('airpay_base_url') || 'http://localhost:3000/api/v1',
+    currentChannel: 'email',
+    sendChannel: 'email',
+  };
+
+  // Init
+  document.getElementById('apiKeyInput').value = state.apiKey;
+  document.getElementById('settingsApiKey').value = state.apiKey;
+  document.getElementById('settingsBaseUrl').value = state.baseUrl;
+
+  checkHealth();
+  loadContacts();
+
+  // API helper
+  async function api(method, endpoint, body) {
+    const res = await fetch(state.baseUrl + endpoint, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.apiKey}`,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || 'Request failed');
+    return data;
+  }
+
+  // Navigation
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item')[['dashboard','send','messages','contacts','templates','settings'].indexOf(name)].classList.add('active');
+    const titles = { dashboard: 'Dashboard', send: 'Send Message', messages: 'Messages', contacts: 'Contacts', templates: 'Templates', settings: 'Settings' };
+    document.getElementById('pageTitle').textContent = titles[name];
+
+    if (name === 'contacts') loadContacts();
+    if (name === 'templates') loadTemplates();
+    if (name === 'messages') loadAllMessages();
+  }
+
+  // Health check
+  async function checkHealth() {
+    const dot = document.getElementById('healthDot');
+    const status = document.getElementById('healthStatus');
+    const result = document.getElementById('healthResult');
+    try {
+      const data = await api('GET', '/health');
+      dot.className = 'health-dot online';
+      status.textContent = 'API Online';
+      if (result) result.innerHTML = `<span style="color:var(--success)">✅ API is healthy</span><br><small>Timestamp: ${data.timestamp}</small>`;
+    } catch (e) {
+      dot.className = 'health-dot offline';
+      status.textContent = 'API Offline';
+      if (result) result.innerHTML = `<span style="color:var(--danger)">❌ API not reachable. Is the server running?</span>`;
+    }
+  }
+
+  // Channel selection
+  function selectChannel(ch, el) {
+    state.currentChannel = ch;
+    document.querySelectorAll('#page-dashboard .channel-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('subjectGroup').style.display = ch === 'email' ? 'block' : 'none';
+    document.getElementById('quickTo').placeholder = ch === 'email' ? 'Email address' : 'Phone number (+E.164)';
+  }
+
+  function selectSendChannel(ch, el) {
+    state.sendChannel = ch;
+    document.querySelectorAll('#page-send .channel-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const isEmail = ch === 'email';
+    document.getElementById('sendSubjectGroup').style.display = isEmail ? 'block' : 'none';
+    document.getElementById('sendCcGroup').style.display = isEmail ? 'block' : 'none';
+    document.getElementById('sendHtmlGroup').style.display = isEmail ? 'block' : 'none';
+    document.getElementById('sendTo').placeholder = isEmail ? 'Email address' : 'Phone number (+E.164 for SMS, digits for WhatsApp)';
+  }
+
+  // Quick send
+  async function quickSend() {
+    const to = document.getElementById('quickTo').value.trim();
+    const subject = document.getElementById('quickSubject').value.trim();
+    const body = document.getElementById('quickBody').value.trim();
+    if (!to || !body) return notify('Please fill in To and Message fields', 'error');
+    if (state.currentChannel === 'email' && !subject) return notify('Subject is required for email', 'error');
+
+    const btn = document.getElementById('quickSendText');
+    btn.innerHTML = '<span class="loading"></span> Sending...';
+    try {
+      const payload = { channel: state.currentChannel, to, body };
+      if (state.currentChannel === 'email') payload.subject = subject;
+      await api('POST', '/messages/send', payload);
+      notify('Message sent successfully! ✅', 'success');
+      document.getElementById('quickTo').value = '';
+      document.getElementById('quickSubject').value = '';
+      document.getElementById('quickBody').value = '';
+    } catch (e) {
+      notify(e.message, 'error');
+    }
+    btn.textContent = 'Send Message';
+  }
+
+  // Send message
+  async function sendMessage() {
+    const to = document.getElementById('sendTo').value.trim();
+    const body = document.getElementById('sendBody').value.trim();
+    const subject = document.getElementById('sendSubject').value.trim();
+    if (!to || !body) return notify('To and Message are required', 'error');
+    if (state.sendChannel === 'email' && !subject) return notify('Subject is required for email', 'error');
+
+    const btn = document.getElementById('sendBtnText');
+    btn.innerHTML = '<span class="loading"></span> Sending...';
+    try {
+      const payload = { channel: state.sendChannel, to, body };
+      if (state.sendChannel === 'email') {
+        payload.subject = subject;
+        const cc = document.getElementById('sendCc').value.trim();
+        const html = document.getElementById('sendHtml').value.trim();
+        if (cc) payload.cc = [cc];
+        if (html) payload.html = html;
+      }
+      const schedule = document.getElementById('sendSchedule').value;
+      if (schedule) payload.scheduledAt = new Date(schedule).toISOString();
+      const meta = document.getElementById('sendMeta').value.trim();
+      if (meta) { try { payload.metadata = JSON.parse(meta); } catch(e) {} }
+
+      const result = await api('POST', '/messages/send', payload);
+      notify('Message sent! ✅', 'success');
+      document.getElementById('sendResult').style.display = 'block';
+      document.getElementById('sendResultContent').innerHTML = `
+        <p><strong>Message ID:</strong> <code>${result.data.messageId}</code></p>
+        <p><strong>Status:</strong> <span class="badge badge-${result.data.status}">${result.data.status}</span></p>
+        <p><strong>Channel:</strong> ${state.sendChannel}</p>
+      `;
+    } catch (e) {
+      notify(e.message, 'error');
+    }
+    btn.textContent = '📤 Send Message';
+  }
+
+  function clearSendForm() {
+    ['sendTo','sendCc','sendSubject','sendBody','sendHtml','sendSchedule','sendMeta'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sendResult').style.display = 'none';
+  }
+
+  // Messages
+  async function loadMessages() {
+    const contactId = document.getElementById('contactIdSearch').value.trim();
+    if (!contactId) return notify('Enter a contact ID', 'error');
+    try {
+      const data = await api('GET', `/messages?contactId=${contactId}&limit=20`);
+      renderMessages(data.data.messages);
+    } catch (e) { notify(e.message, 'error'); }
+  }
+
+  async function loadAllMessages() {
+    try {
+      // Try to get messages from first contact
+      const contacts = await api('GET', '/contacts?limit=1');
+      if (contacts.data.contacts.length > 0) {
+        const data = await api('GET', `/messages?contactId=${contacts.data.contacts[0].id}&limit=50`);
+        renderMessages(data.data.messages);
+      }
+    } catch (e) {}
+  }
+
+  function renderMessages(messages) {
+    const tbody = document.getElementById('messagesTable');
+    if (!messages || messages.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">No messages found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = messages.map(m => `
+      <tr>
+        <td>${channelEmoji(m.channel)} ${m.channel}</td>
+        <td>${m.direction === 'inbound' ? '📥 In' : '📤 Out'}</td>
+        <td>${m.contact?.email || m.contact?.phone || m.contact?.whatsappId || '—'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.subject || m.body || '—'}</td>
+        <td><span class="badge badge-${m.status}">${m.status}</span></td>
+        <td>${new Date(m.createdAt).toLocaleString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Contacts
+  async function loadContacts() {
+    try {
+      const data = await api('GET', '/contacts?limit=50');
+      renderContacts(data.data.contacts);
+    } catch (e) {
+      document.getElementById('contactsTable').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">${state.apiKey ? 'Failed to load contacts' : 'Set your API key in Settings'}</td></tr>`;
+    }
+  }
+
+  async function searchContacts() {
+    const q = document.getElementById('contactSearch').value.trim();
+    try {
+      const data = await api('GET', `/contacts?search=${q}&limit=50`);
+      renderContacts(data.data.contacts);
+    } catch (e) { notify(e.message, 'error'); }
+  }
+
+  function renderContacts(contacts) {
+    const tbody = document.getElementById('contactsTable');
+    if (!contacts || contacts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">No contacts found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = contacts.map(c => `
+      <tr>
+        <td>${c.firstName || ''} ${c.lastName || ''}</td>
+        <td>${c.email || '—'}</td>
+        <td>${c.phone || '—'}</td>
+        <td>${c.whatsappId || '—'}</td>
+        <td>${c.preferences?.preferredChannel || '—'}</td>
+        <td>
+          <button class="btn btn-sm btn-secondary" onclick="copyToClipboard('${c.id}')">Copy ID</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Templates
+  async function loadTemplates() {
+    // Templates endpoint not yet implemented in backend, show placeholder
+    document.getElementById('templatesList').innerHTML = `
+      <div class="card">
+        <div class="card-title">📋 Available Templates</div>
+        <p style="color:var(--text-muted);font-size:13px;">Templates created via the API will appear here. Use the button above to create a new template.</p>
+      </div>
+    `;
+  }
+
+  // Modals
+  function openContactModal() { document.getElementById('contactModal').classList.add('open'); }
+  function openTemplateModal() { document.getElementById('templateModal').classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  async function createContact() {
+    const body = {
+      firstName: document.getElementById('cFirstName').value.trim(),
+      lastName: document.getElementById('cLastName').value.trim(),
+      email: document.getElementById('cEmail').value.trim() || undefined,
+      phone: document.getElementById('cPhone').value.trim() || undefined,
+      whatsappId: document.getElementById('cWhatsApp').value.trim() || undefined,
+    };
+    if (!body.email && !body.phone && !body.whatsappId) return notify('At least one contact method is required', 'error');
+    try {
+      await api('POST', '/contacts', body);
+      notify('Contact created! ✅', 'success');
+      closeModal('contactModal');
+      loadContacts();
+      ['cFirstName','cLastName','cEmail','cPhone','cWhatsApp'].forEach(id => document.getElementById(id).value = '');
+    } catch (e) { notify(e.message, 'error'); }
+  }
+
+  async function createTemplate() {
+    const vars = document.getElementById('tVars').value.split(',').map(v => v.trim()).filter(Boolean);
+    const body = {
+      name: document.getElementById('tName').value.trim(),
+      channel: document.getElementById('tChannel').value,
+      subjectTemplate: document.getElementById('tSubject').value.trim() || undefined,
+      bodyTemplate: document.getElementById('tBody').value.trim(),
+      variables: vars,
+    };
+    if (!body.name || !body.bodyTemplate) return notify('Name and body are required', 'error');
+    try {
+      await api('POST', '/templates', body);
+      notify('Template created! ✅', 'success');
+      closeModal('templateModal');
+    } catch (e) { notify(e.message, 'error'); }
+  }
+
+  // Settings
+  function saveApiKey() {
+    state.apiKey = document.getElementById('apiKeyInput').value.trim();
+    localStorage.setItem('airpay_api_key', state.apiKey);
+    notify('API key saved ✅', 'success');
+    checkHealth();
+    loadContacts();
+  }
+
+  function saveSettings() {
+    state.apiKey = document.getElementById('settingsApiKey').value.trim();
+    state.baseUrl = document.getElementById('settingsBaseUrl').value.trim();
+    localStorage.setItem('airpay_api_key', state.apiKey);
+    localStorage.setItem('airpay_base_url', state.baseUrl);
+    document.getElementById('apiKeyInput').value = state.apiKey;
+    notify('Settings saved ✅', 'success');
+    checkHealth();
+  }
+
+  // Helpers
+  function notify(msg, type = 'info') {
+    const el = document.getElementById('notification');
+    el.textContent = msg;
+    el.className = `notification ${type}`;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 3500);
+  }
+
+  function channelEmoji(ch) {
+    return ch === 'email' ? '✉️' : ch === 'sms' ? '💬' : '📱';
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => notify('Copied to clipboard!', 'info'));
+  }
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  // Init channel fields
+  selectChannel('email', document.querySelector('#page-dashboard .channel-pill.email'));
+  selectSendChannel('email', document.querySelector('#page-send .channel-pill.email'));
+</script>
+</body>
+</html>
